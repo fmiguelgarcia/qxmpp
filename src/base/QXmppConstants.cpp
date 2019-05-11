@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2014 The QXmpp developers
+ * Copyright (C) 2008-2019 The QXmpp developers
  *
  * Author:
  *  Manjeet Dahiya
@@ -57,6 +57,8 @@ const char* ns_vcard = "vcard-temp";
 const char* ns_rsm = "http://jabber.org/protocol/rsm";
 // XEP-0065: SOCKS5 Bytestreams
 const char* ns_bytestreams = "http://jabber.org/protocol/bytestreams";
+// XEP-0066: Out of Band Data
+const char* ns_oob = "jabber:x:oob";
 // XEP-0071: XHTML-IM
 const char *ns_xhtml_im = "http://jabber.org/protocol/xhtml-im";
 // XEP-0077: In-Band Registration
@@ -120,7 +122,30 @@ const char* ns_conference = "jabber:x:conference";
 const char* ns_carbons = "urn:xmpp:carbons:2";
 // XEP-0297: Stanza Forwarding
 const char* ns_forwarding = "urn:xmpp:forward:0";
+// XEP-0308: Last Message Correction
+const char* ns_message_correct = "urn:xmpp:message-correct:0";
 // XEP-0313: Message Archive Management
 const char* ns_mam = "urn:xmpp:mam:1";
+// XEP-0319: Last User Interaction in Presence
+const char* ns_idle = "urn:xmpp:idle:1";
 // XEP-0333: Chat Markers
 const char* ns_chat_markers = "urn:xmpp:chat-markers:0";
+// XEP-0352: Client State Indication
+const char* ns_csi = "urn:xmpp:csi:0";
+// XEP-0363: HTTP File Upload
+const char* ns_http_upload = "urn:xmpp:http:upload:0";
+// XEP-0369: Mediated Information eXchange (MIX)
+const char* ns_mix = "urn:xmpp:mix:core:1";
+const char* ns_mix_create_channel = "urn:xmpp:mix:core:1#create-channel";
+const char* ns_mix_searchable = "urn:xmpp:mix:core:1#searchable";
+const char* ns_mix_node_messages = "urn:xmpp:mix:nodes:messages";
+const char* ns_mix_node_participants = "urn:xmpp:mix:nodes:participants";
+const char* ns_mix_node_presence = "urn:xmpp:mix:nodes:presence";
+const char* ns_mix_node_config = "urn:xmpp:mix:nodes:config";
+const char* ns_mix_node_info = "urn:xmpp:mix:nodes:info";
+// XEP-0382: Spoiler messages
+const char* ns_spoiler = "urn:xmpp:spoiler:0";
+// XEP-0405: Mediated Information eXchange (MIX): Participant Server Requirements
+const char* ns_mix_pam = "urn:xmpp:mix:pam:1";
+const char* ns_mix_roster = "urn:xmpp:mix:roster:0";
+const char* ns_mix_presence = "urn:xmpp:presence:0";

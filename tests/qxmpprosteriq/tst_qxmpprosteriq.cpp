@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2014 The QXmpp developers
+ * Copyright (C) 2008-2019 The QXmpp developers
  *
  * Author:
  *  Jeremy Lainé
@@ -32,6 +32,10 @@ class tst_QXmppRosterIq : public QObject
 private slots:
     void testItem_data();
     void testItem();
+    void testVersion_data();
+    void testVersion();
+    void testMixAnnotate();
+    void testMixChannel();
 };
 
 void tst_QXmppRosterIq::testItem_data()
@@ -85,6 +89,71 @@ void tst_QXmppRosterIq::testItem()
     QCOMPARE(int(item.subscriptionType()), subscriptionType);
     QCOMPARE(item.subscriptionStatus(), QString());
     serializePacket(item, xml);
+}
+
+void tst_QXmppRosterIq::testVersion_data()
+{
+    QTest::addColumn<QByteArray>("xml");
+    QTest::addColumn<QString>("version");
+
+    QTest::newRow("noversion")
+        << QByteArray("<iq id=\"woodyisacat\" to=\"woody@zam.tw/cat\" type=\"result\"><query xmlns=\"jabber:iq:roster\"/></iq>")
+        << "";
+
+    QTest::newRow("version")
+        << QByteArray("<iq id=\"woodyisacat\" to=\"woody@zam.tw/cat\" type=\"result\"><query xmlns=\"jabber:iq:roster\" ver=\"3345678\"/></iq>")
+        << "3345678";
+}
+
+void tst_QXmppRosterIq::testVersion()
+{
+    QFETCH(QByteArray, xml);
+    QFETCH(QString, version);
+
+    QXmppRosterIq iq;
+    parsePacket(iq, xml);
+    QCOMPARE(iq.version(), version);
+    serializePacket(iq, xml);
+}
+
+void tst_QXmppRosterIq::testMixAnnotate()
+{
+    const QByteArray xml(
+        "<iq from=\"juliet@example.com/balcony\" "
+            "type=\"get\">"
+            "<query xmlns=\"jabber:iq:roster\">"
+                "<annotate xmlns=\"urn:xmpp:mix:roster:0\"/>"
+            "</query>"
+        "</iq>"
+    );
+
+    QXmppRosterIq iq;
+    parsePacket(iq, xml);
+    QCOMPARE(iq.mixAnnotate(), true);
+    serializePacket(iq, xml);
+
+    iq.setMixAnnotate(false);
+    QCOMPARE(iq.mixAnnotate(), false);
+}
+
+void tst_QXmppRosterIq::testMixChannel()
+{
+    const QByteArray xml(
+        "<item jid=\"balcony@example.net\">"
+            "<channel xmlns=\"urn:xmpp:mix:roster:0\" participant-id=\"123456\"/>"
+        "</item>"
+    );
+
+    QXmppRosterIq::Item item;
+    parsePacket(item, xml);
+    QCOMPARE(item.isMixChannel(), true);
+    QCOMPARE(item.mixParticipantId(), QString("123456"));
+    serializePacket(item, xml);
+
+    item.setIsMixChannel(false);
+    QCOMPARE(item.isMixChannel(), false);
+    item.setMixParticipantId("23a7n");
+    QCOMPARE(item.mixParticipantId(), QString("23a7n"));
 }
 
 QTEST_MAIN(tst_QXmppRosterIq)

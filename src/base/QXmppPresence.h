@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2014 The QXmpp developers
+ * Copyright (C) 2008-2019 The QXmpp developers
  *
  * Author:
  *  Manjeet Dahiya
@@ -127,6 +127,17 @@ public:
     void setCapabilityVer(const QByteArray&);
 
     QStringList capabilityExt() const;
+
+    // XEP-0319: Last User Interaction in Presence
+    QDateTime lastUserInteraction() const;
+    void setLastUserInteraction(const QDateTime&);
+
+    // XEP-0405: Mediated Information eXchange (MIX): Participant Server Requirements
+    QString mixUserJid() const;
+    void setMixUserJid(const QString&);
+
+    QString mixUserNick() const;
+    void setMixUserNick(const QString&);
 
     bool isXmppStanza() const;
 

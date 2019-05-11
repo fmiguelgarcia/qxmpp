@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2014 The QXmpp developers
+ * Copyright (C) 2008-2019 The QXmpp developers
  *
  * Author:
  *  Jeremy Lainé
@@ -530,7 +530,7 @@ int QXmppOpusCodec::readWindow(int bufferSize)
     // Get the number of frames in the buffer.
     int samples = bufferSize / nChannels / 2;
 
-    // Find an appropiate number of samples to read, according to Opus specs.
+    // Find an appropriate number of samples to read, according to Opus specs.
     for (int i = validFrameSize.size() - 1; i >= 0; i--)
         if (validFrameSize[i] <= samples)
             return validFrameSize[i];
@@ -1207,7 +1207,7 @@ QList<QXmppVideoFrame> QXmppVpxDecoder::handlePacket(const QXmppRtpPacket &packe
     QXmppVideoFrame frame;
     static quint16 sequence = 0;
 
-    // If the incomming packet sequence is wrong discard all packets until a
+    // If the incoming packet sequence is wrong discard all packets until a
     // complete keyframe arrives.
     // If a partition of a keyframe is missing, discard it until a next
     // keyframe.

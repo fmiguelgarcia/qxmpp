@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2014 The QXmpp developers
+ * Copyright (C) 2008-2019 The QXmpp developers
  *
  * Author:
  *  Jeremy Lainé
@@ -81,7 +81,7 @@ void QXmppRtpChannel::setRemotePayloadTypes(const QList<QXmppJinglePayloadType> 
         commonOutgoingTypes << outgoingType;
     }
     if (commonOutgoingTypes.isEmpty()) {
-        qWarning("QXmppRtpChannel could not negociate a common codec");
+        qWarning("QXmppRtpChannel could not negotiate a common codec");
         return;
     }
     m_incomingPayloadTypes = commonIncomingTypes;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2014 The QXmpp developers
+ * Copyright (C) 2008-2019 The QXmpp developers
  *
  * Author:
  *  Jeremy Lainé
@@ -104,7 +104,8 @@ private:
 };
 
 QXmppCallPrivate::QXmppCallPrivate(QXmppCall *qq)
-    : manager(0),
+    : direction(QXmppCall::IncomingDirection),
+    manager(0),
     state(QXmppCall::ConnectingState),
     sendVideo(false),
     audioMode(QIODevice::NotOpen),

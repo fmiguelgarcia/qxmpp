@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2014 The QXmpp developers
+ * Copyright (C) 2008-2019 The QXmpp developers
  *
  * Author:
  *  Manjeet Dahiya
@@ -64,7 +64,7 @@ class QXmppVersionManager;
 /// QXmppConfiguration::setAutoReconnectionEnabled().
 ///
 /// Not all the managers or extensions have been enabled by default. One can
-/// enable/disable the managers using the funtions addExtension() and
+/// enable/disable the managers using the functions addExtension() and
 /// removeExtension(). findExtension() can be used to find reference/pointer to
 /// particular instansiated and enabled manager.
 ///
@@ -139,6 +139,9 @@ public:
 
     bool isAuthenticated() const;
     bool isConnected() const;
+
+    bool isActive() const;
+    void setActive(bool active);
 
     QXmppPresence clientPresence() const;
     void setClientPresence(const QXmppPresence &presence);

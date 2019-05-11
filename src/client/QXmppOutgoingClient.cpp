@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2014 The QXmpp developers
+ * Copyright (C) 2008-2019 The QXmpp developers
  *
  * Authors:
  *  Manjeet Dahiya
@@ -26,11 +26,7 @@
 #include <QNetworkProxy>
 #include <QSslSocket>
 #include <QUrl>
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
 #include <QDnsLookup>
-#else
-#include "qdnslookup.h"
-#endif
 
 #include "QXmppConfiguration.h"
 #include "QXmppConstants_p.h"
@@ -64,6 +60,7 @@ class QXmppOutgoingClientPrivate
 public:
     QXmppOutgoingClientPrivate(QXmppOutgoingClient *q);
     void connectToHost(const QString &host, quint16 port);
+    void connectToNextDNSHost();
 
     void sendNonSASLAuth(bool plaintext);
     void sendNonSASLAuthQuery();
@@ -78,6 +75,7 @@ public:
 
     // DNS
     QDnsLookup dns;
+    int nextSrvRecordIdx;
 
     // Stream
     QString streamId;
@@ -108,6 +106,9 @@ public:
     QString resumeHost;
     quint16 resumePort;
 
+    // Client State Indication
+    bool clientStateIndicationEnabled;
+
     // Timers
     QTimer *pingTimer;
     QTimer *timeoutTimer;
@@ -117,7 +118,8 @@ private:
 };
 
 QXmppOutgoingClientPrivate::QXmppOutgoingClientPrivate(QXmppOutgoingClient *qq)
-    : redirectPort(0)
+    : nextSrvRecordIdx(0)
+    , redirectPort(0)
     , bindModeAvailable(false)
     , sessionAvailable(false)
     , sessionStarted(false)
@@ -127,6 +129,7 @@ QXmppOutgoingClientPrivate::QXmppOutgoingClientPrivate(QXmppOutgoingClient *qq)
     , canResume(false)
     , isResuming(false)
     , resumePort(0)
+    , clientStateIndicationEnabled(false)
     , pingTimer(0)
     , timeoutTimer(0)
     , q(qq)
@@ -144,10 +147,8 @@ void QXmppOutgoingClientPrivate::connectToHost(const QString &host, quint16 port
     // respect proxy
     q->socket()->setProxy(config.networkProxy());
 
-#if (QT_VERSION >= QT_VERSION_CHECK(4, 8, 0))
     // set the name the SSL certificate should match
     q->socket()->setPeerVerifyName(config.domain());
-#endif
 
     // connect to host
     const QXmppConfiguration::StreamSecurityMode localSecurity = q->configuration().streamSecurityMode();
@@ -160,6 +161,15 @@ void QXmppOutgoingClientPrivate::connectToHost(const QString &host, quint16 port
     } else {
         q->socket()->connectToHost(host, port);
     }
+}
+
+void QXmppOutgoingClientPrivate::connectToNextDNSHost()
+{
+    connectToHost(
+        dns.serviceRecords().at(nextSrvRecordIdx).target(),
+        dns.serviceRecords().at(nextSrvRecordIdx).port());
+
+    nextSrvRecordIdx++;
 }
 
 /// Constructs an outgoing client stream.
@@ -251,6 +261,7 @@ void QXmppOutgoingClient::connectToHost()
     d->dns.setName("_xmpp-client._tcp." + domain);
     d->dns.setType(QDnsLookup::SRV);
     d->dns.lookup();
+    d->nextSrvRecordIdx = 0;
 }
 
 void QXmppOutgoingClient::disconnectFromHost()
@@ -264,9 +275,7 @@ void QXmppOutgoingClient::_q_dnsLookupFinished()
     if (d->dns.error() == QDnsLookup::NoError &&
         !d->dns.serviceRecords().isEmpty()) {
         // take the first returned record
-        d->connectToHost(
-            d->dns.serviceRecords().first().target(),
-            d->dns.serviceRecords().first().port());
+        d->connectToNextDNSHost();
     } else {
         // as a fallback, use domain as the host name
         warning(QString("Lookup for domain %1 failed: %2")
@@ -287,6 +296,13 @@ bool QXmppOutgoingClient::isAuthenticated() const
 bool QXmppOutgoingClient::isConnected() const
 {
     return QXmppStream::isConnected() && d->sessionStarted;
+}
+
+/// Returns true if client state indication (xep-0352) is supported by the server
+
+bool QXmppOutgoingClient::isClientStateIndicationEnabled() const
+{
+    return d->clientStateIndicationEnabled;
 }
 
 void QXmppOutgoingClient::_q_socketDisconnected()
@@ -320,7 +336,14 @@ void QXmppOutgoingClient::socketSslErrors(const QList<QSslError> &errors)
 void QXmppOutgoingClient::socketError(QAbstractSocket::SocketError socketError)
 {
     Q_UNUSED(socketError);
-    emit error(QXmppClient::SocketError);
+    if ( !d->sessionStarted &&
+         (d->dns.serviceRecords().count() > d->nextSrvRecordIdx) )
+    {
+        // some network error occurred during startup -> try next available SRV record server
+        d->connectToNextDNSHost();
+    }
+    else
+        emit error(QXmppClient::SocketError);
 }
 
 /// \cond
@@ -388,6 +411,9 @@ void QXmppOutgoingClient::handleStanza(const QDomElement &nodeRecv)
         QXmppStreamFeatures features;
         features.parse(nodeRecv);
 
+        if(features.clientStateIndicationMode() == QXmppStreamFeatures::Enabled)
+            d->clientStateIndicationEnabled = true;
+
         if (!socket()->isEncrypted())
         {
             // determine TLS mode to use
@@ -425,8 +451,12 @@ void QXmppOutgoingClient::handleStanza(const QDomElement &nodeRecv)
         if (saslAvailable && configuration().useSASLAuthentication())
         {
             // supported and preferred SASL auth mechanisms
-            QStringList supportedMechanisms = QXmppSaslClient::availableMechanisms();
             const QString preferredMechanism = configuration().saslAuthMechanism();
+            QStringList supportedMechanisms = QXmppSaslClient::availableMechanisms();
+            if (supportedMechanisms.contains(preferredMechanism)) {
+                supportedMechanisms.removeAll(preferredMechanism);
+                supportedMechanisms.prepend(preferredMechanism);
+            }
             if (configuration().facebookAppId().isEmpty() || configuration().facebookAccessToken().isEmpty())
                 supportedMechanisms.removeAll("X-FACEBOOK-PLATFORM");
             if (configuration().windowsLiveAccessToken().isEmpty())
@@ -437,19 +467,16 @@ void QXmppOutgoingClient::handleStanza(const QDomElement &nodeRecv)
             // determine SASL Authentication mechanism to use
             QStringList commonMechanisms;
             QString usedMechanism;
-            foreach (const QString &mechanism, features.authMechanisms()) {
-                if (supportedMechanisms.contains(mechanism))
+            foreach (const QString &mechanism, supportedMechanisms) {
+                if (features.authMechanisms().contains(mechanism))
                     commonMechanisms << mechanism;
             }
             if (commonMechanisms.isEmpty()) {
                 warning("No supported SASL Authentication mechanism available");
                 disconnectFromHost();
                 return;
-            } else if (!commonMechanisms.contains(preferredMechanism)) {
-                info(QString("Desired SASL Auth mechanism '%1' is not available, selecting first available one").arg(preferredMechanism));
-                usedMechanism = commonMechanisms.first();
             } else {
-                usedMechanism = preferredMechanism;
+                usedMechanism = commonMechanisms.first();
             }
 
             d->saslClient = QXmppSaslClient::create(usedMechanism, this);
@@ -905,7 +932,7 @@ void QXmppOutgoingClientPrivate::sendStreamManagementEnable()
     q->sendData(data);
 }
 
-/// Returns the type of the last XMPP stream error that occured.
+/// Returns the type of the last XMPP stream error that occurred.
 
 QXmppStanza::Error::Condition QXmppOutgoingClient::xmppStreamError()
 {

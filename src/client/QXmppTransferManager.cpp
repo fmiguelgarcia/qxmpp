@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2014 The QXmpp developers
+ * Copyright (C) 2008-2019 The QXmpp developers
  *
  * Author:
  *  Jeremy Lainé
@@ -220,6 +220,7 @@ public:
 QXmppTransferJobPrivate::QXmppTransferJobPrivate()
     : blockSize(16384),
     client(0),
+    direction(QXmppTransferJob::IncomingDirection),
     done(0),
     error(QXmppTransferJob::NoError),
     hash(QCryptographicHash::Md5),
@@ -1155,7 +1156,7 @@ void QXmppTransferManager::_q_iqReceived(const QXmppIq &iq)
                     job->terminate(QXmppTransferJob::ProtocolError);
                 }
             } else {
-                // we could not get host/port from proxy, procede without a proxy
+                // we could not get host/port from proxy, proceed without a proxy
                 if (iq.type() == QXmppIq::Error)
                     socksServerSendOffer(job);
             }

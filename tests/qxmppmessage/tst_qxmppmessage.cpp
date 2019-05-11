@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2014 The QXmpp developers
+ * Copyright (C) 2008-2019 The QXmpp developers
  *
  * Authors:
  *  Jeremy Lainé
@@ -46,6 +46,10 @@ private slots:
     void testSubextensions();
     void testChatMarkers();
     void testPrivateMessage();
+    void testOutOfBandUrl();
+    void testMessageCorrect();
+    void testMix();
+    void testSpoiler();
 };
 
 void tst_QXmppMessage::testBasic_data()
@@ -109,6 +113,7 @@ void tst_QXmppMessage::testBasic()
     QCOMPARE(message.isReceiptRequested(), false);
     QCOMPARE(message.receiptId(), QString());
     QCOMPARE(message.xhtml(), QString());
+    QVERIFY(!message.isSpoiler());
     serializePacket(message, xml);
 }
 
@@ -567,6 +572,116 @@ void tst_QXmppMessage::testPrivateMessage()
     QXmlStreamWriter writer(&buffer);
     privateMessage.toXml(&writer);
     QVERIFY(!buffer.data().contains("private"));
+}
+
+void tst_QXmppMessage::testOutOfBandUrl()
+{
+    const QByteArray oobXml(
+        "<message to=\"MaineBoy@jabber.org/home\" "
+                 "from=\"stpeter@jabber.org/work\" "
+                 "type=\"chat\">"
+            "<body>Yeah, but do you have a license to Jabber?</body>"
+            "<x xmlns=\"jabber:x:oob\">"
+                "<url>http://www.jabber.org/images/psa-license.jpg</url>"
+            "</x>"
+        "</message>"
+    );
+    const QString firstUrl = "http://www.jabber.org/images/psa-license.jpg";
+    const QString newUrl = "https://xmpp.org/theme/images/xmpp-logo.svg";
+
+    QXmppMessage oobMessage;
+    parsePacket(oobMessage, oobXml);
+    QCOMPARE(oobMessage.outOfBandUrl(), firstUrl);
+
+    oobMessage.setOutOfBandUrl(newUrl);
+    QCOMPARE(oobMessage.outOfBandUrl(), newUrl);
+
+    // set first url again
+    oobMessage.setOutOfBandUrl(firstUrl);
+    serializePacket(oobMessage, oobXml);
+}
+
+void tst_QXmppMessage::testMessageCorrect()
+{
+    const QByteArray xml(
+        "<message to=\"foo@example.com/QXmpp\" from=\"bar@example.com/QXmpp\" type=\"normal\">"
+          "<body>This is the corrected version.</body>"
+          "<replace xmlns=\"urn:xmpp:message-correct:0\" id=\"badmessage\"/>"
+        "</message>");
+
+    QXmppMessage message;
+    parsePacket(message, xml);
+    QCOMPARE(message.replaceId(), QString("badmessage"));
+    serializePacket(message, xml);
+
+    message.setReplaceId("someotherid");
+    QCOMPARE(message.replaceId(), QString("someotherid"));
+}
+
+void tst_QXmppMessage::testMix()
+{
+    const QByteArray xml(
+        "<message to=\"hag66@shakespeare.example\" "
+                 "from=\"coven@mix.shakespeare.example/123456\" "
+                 "type=\"groupchat\">"
+            "<body>Harpier cries: 'tis time, 'tis time.</body>"
+            "<mix xmlns=\"urn:xmpp:mix:core:1\">"
+                "<jid>hag66@shakespeare.example</jid>"
+                "<nick>thirdwitch</nick>"
+            "</mix>"
+        "</message>"
+    );
+
+    QXmppMessage message;
+    parsePacket(message, xml);
+    serializePacket(message, xml);
+
+    QCOMPARE(message.mixUserJid(), QString("hag66@shakespeare.example"));
+    QCOMPARE(message.mixUserNick(), QString("thirdwitch"));
+
+    message.setMixUserJid("alexander@example.org");
+    QCOMPARE(message.mixUserJid(), QString("alexander@example.org"));
+    message.setMixUserNick("erik");
+    QCOMPARE(message.mixUserNick(), QString("erik"));
+}
+
+void tst_QXmppMessage::testSpoiler()
+{
+    // test parsing with hint
+    const QByteArray xmlWithHint(
+        "<message to=\"foo@example.com/QXmpp\" from=\"bar@example.com/QXmpp\" type=\"normal\">"
+          "<body>And at the end of the story, both of them die! It is so tragic!</body>"
+          "<spoiler xmlns=\"urn:xmpp:spoiler:0\">Love story end</spoiler>"
+        "</message>");
+
+    QXmppMessage messageWithHint;
+    parsePacket(messageWithHint, xmlWithHint);
+    QVERIFY(messageWithHint.isSpoiler());
+    QCOMPARE(messageWithHint.spoilerHint(), QString("Love story end"));
+    serializePacket(messageWithHint, xmlWithHint);
+
+    // test parsing without hint
+    const QByteArray xmlWithoutHint(
+        "<message to=\"foo@example.com/QXmpp\" from=\"bar@example.com/QXmpp\" type=\"normal\">"
+          "<body>And at the end of the story, both of them die! It is so tragic!</body>"
+          "<spoiler xmlns=\"urn:xmpp:spoiler:0\"></spoiler>"
+        "</message>");
+
+    QXmppMessage messageWithoutHint;
+    parsePacket(messageWithoutHint, xmlWithoutHint);
+    QVERIFY(messageWithoutHint.isSpoiler());
+    QCOMPARE(messageWithoutHint.spoilerHint(), QString(""));
+    serializePacket(messageWithoutHint, xmlWithoutHint);
+
+    // test setters
+    QXmppMessage message;
+    message.setIsSpoiler(true);
+    QVERIFY(message.isSpoiler());
+
+    message.setIsSpoiler(false);
+    message.setSpoilerHint("test hint");
+    QCOMPARE(message.spoilerHint(), QString("test hint"));
+    QVERIFY(message.isSpoiler());
 }
 
 QTEST_MAIN(tst_QXmppMessage)

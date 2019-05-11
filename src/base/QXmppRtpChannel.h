@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2014 The QXmpp developers
+ * Copyright (C) 2008-2019 The QXmpp developers
  *
  * Author:
  *  Jeremy Lainé
@@ -209,6 +209,12 @@ private:
 class QXMPP_EXPORT QXmppVideoFormat
 {
 public:
+    QXmppVideoFormat()
+        : m_frameRate(15.0)
+        , m_frameSize(QSize(320, 240))
+        , m_pixelFormat(QXmppVideoFrame::Format_YUYV)
+    {}
+
     int frameHeight() const {
         return m_frameSize.height();
     }

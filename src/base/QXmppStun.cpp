@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2014 The QXmpp developers
+ * Copyright (C) 2008-2019 The QXmpp developers
  *
  * Author:
  *  Jeremy Lainé
@@ -2518,7 +2518,8 @@ public:
 };
 
 QXmppIceConnectionPrivate::QXmppIceConnectionPrivate()
-    : gatheringState(QXmppIceConnection::NewGatheringState)
+    : connectTimer(NULL)
+    , gatheringState(QXmppIceConnection::NewGatheringState)
     , turnPort(0)
 {
 }

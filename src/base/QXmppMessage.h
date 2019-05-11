@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2014 The QXmpp developers
+ * Copyright (C) 2008-2019 The QXmpp developers
  *
  * Author:
  *  Manjeet Dahiya
@@ -134,6 +134,28 @@ public:
     void setPrivate(const bool);
 
     bool isXmppStanza() const;
+
+    // XEP-0066: Out of Band Data
+    QString outOfBandUrl() const;
+    void setOutOfBandUrl(const QString&);
+
+    // XEP-0308: Last Message Correction
+    QString replaceId() const;
+    void setReplaceId(const QString&);
+
+    // XEP-0369: Mediated Information eXchange (MIX)
+    QString mixUserJid() const;
+    void setMixUserJid(const QString&);
+
+    QString mixUserNick() const;
+    void setMixUserNick(const QString&);
+
+    // XEP-0382: Spoiler messages
+    bool isSpoiler() const;
+    void setIsSpoiler(bool);
+
+    QString spoilerHint() const;
+    void setSpoilerHint(const QString&);
 
     /// \cond
     void parse(const QDomElement &element);

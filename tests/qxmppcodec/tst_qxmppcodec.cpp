@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2014 The QXmpp developers
+ * Copyright (C) 2008-2019 The QXmpp developers
  *
  * Authors:
  *  Jeremy Lainé
@@ -23,7 +23,9 @@
 
 #include <QObject>
 #include <QtTest>
+
 #include "QXmppCodec_p.h"
+#include "QXmppRtpChannel.h"
 
 class tst_QXmppCodec : public QObject
 {

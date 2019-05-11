@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2014 The QXmpp developers
+ * Copyright (C) 2008-2019 The QXmpp developers
  *
  * Author:
  *  Manjeet Dahiya
@@ -91,7 +91,7 @@ void QXmppIq::setType(QXmppIq::Type type)
     d->type = type;
 }
 
-/// Indicates if the QXmppStanza is a stanza in the XMPP sence (i. e. a message,
+/// Indicates if the QXmppStanza is a stanza in the XMPP sense (i. e. a message,
 /// iq or presence)
 
 bool QXmppIq::isXmppStanza() const

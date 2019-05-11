@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2014 The QXmpp developers
+ * Copyright (C) 2008-2019 The QXmpp developers
  *
  * Author:
  *  Jeremy Lainé
@@ -25,11 +25,7 @@
 #include <QSslKey>
 #include <QSslSocket>
 #include <QTimer>
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
 #include <QDnsLookup>
-#else
-#include "qdnslookup.h"
-#endif
 
 #include "QXmppConstants_p.h"
 #include "QXmppDialback.h"
@@ -137,10 +133,8 @@ void QXmppOutgoingServer::_q_dnsLookupFinished()
         port = 5269;
     }
 
-#if (QT_VERSION >= QT_VERSION_CHECK(4, 8, 0))
     // set the name the SSL certificate should match
     socket()->setPeerVerifyName(d->remoteDomain);
-#endif
 
     // connect to server
     info(QString("Connecting to %1:%2").arg(host, QString::number(port)));

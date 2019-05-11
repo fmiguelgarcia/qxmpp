@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2014 The QXmpp developers
+ * Copyright (C) 2008-2019 The QXmpp developers
  *
  * Authors:
  *  Jeremy Lainé
@@ -35,7 +35,6 @@ private slots:
     void testHmac();
     void testJid();
     void testMime();
-    void testLibVersion();
     void testTimezoneOffset();
 };
 
@@ -111,11 +110,6 @@ void tst_QXmppUtils::testMime()
 {
 }
 #endif
-
-void tst_QXmppUtils::testLibVersion()
-{
-    QCOMPARE(QXmppVersion(), QString("0.9.3"));
-}
 
 void tst_QXmppUtils::testTimezoneOffset()
 {

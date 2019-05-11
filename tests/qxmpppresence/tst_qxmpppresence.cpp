@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2014 The QXmpp developers
+ * Copyright (C) 2008-2019 The QXmpp developers
  *
  * Authors:
  *  Olivier Goffart
@@ -22,6 +22,7 @@
  *
  */
 
+#include <QDateTime>
 #include <QObject>
 
 #include "QXmppPresence.h"
@@ -40,6 +41,8 @@ private slots:
     void testPresenceWithMucItem();
     void testPresenceWithMucPassword();
     void testPresenceWithMucSupport();
+    void testPresenceWithLastUserInteraction();
+    void testPresenceWithMix();
 };
 
 void tst_QXmppPresence::testPresence_data()
@@ -229,6 +232,54 @@ void tst_QXmppPresence::testPresenceWithMucSupport()
     QCOMPARE(presence.isMucSupported(), true);
     QVERIFY(presence.mucPassword().isEmpty());
     serializePacket(presence, xml);
+}
+
+void tst_QXmppPresence::testPresenceWithLastUserInteraction()
+{
+    const QByteArray xml(
+        "<presence to=\"coven@chat.shakespeare.lit/thirdwitch\" "
+                  "from=\"hag66@shakespeare.lit/pda\">"
+            "<idle xmlns=\"urn:xmpp:idle:1\" since=\"1969-07-21T02:56:15Z\"/>"
+        "</presence>");
+
+    QXmppPresence presence;
+    parsePacket(presence, xml);
+    QVERIFY(!presence.lastUserInteraction().isNull());
+    QVERIFY(presence.lastUserInteraction().isValid());
+    QCOMPARE(presence.lastUserInteraction(), QDateTime(QDate(1969, 7, 21),
+             QTime(2, 56, 15), Qt::UTC));
+    serializePacket(presence, xml);
+
+    QDateTime another(QDate(2025, 2, 5), QTime(15, 32, 8), Qt::UTC);
+    presence.setLastUserInteraction(another);
+    QCOMPARE(presence.lastUserInteraction(), another);
+}
+
+void tst_QXmppPresence::testPresenceWithMix()
+{
+    const QByteArray xml(
+        "<presence to=\"hag99@shakespeare.example\" "
+                  "from=\"123435#coven@mix.shakespeare.example/UUID-a1j/7533\">"
+            "<show>dnd</show>"
+            "<status>Making a Brew</status>"
+            "<mix xmlns=\"urn:xmpp:presence:0\">"
+                "<jid>hecate@shakespeare.example/UUID-x4r/2491</jid>"
+                "<nick>thirdwitch</nick>"
+            "</mix>"
+        "</presence>"
+    );
+
+    QXmppPresence presence;
+    parsePacket(presence, xml);
+
+    QCOMPARE(presence.mixUserJid(), QString("hecate@shakespeare.example/UUID-x4r/2491"));
+    QCOMPARE(presence.mixUserNick(), QString("thirdwitch"));
+    serializePacket(presence, xml);
+
+    presence.setMixUserJid("alexander@example.org");
+    QCOMPARE(presence.mixUserJid(), QString("alexander@example.org"));
+    presence.setMixUserNick("erik");
+    QCOMPARE(presence.mixUserNick(), QString("erik"));
 }
 
 QTEST_MAIN(tst_QXmppPresence)

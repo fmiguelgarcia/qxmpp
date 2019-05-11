@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2014 The QXmpp developers
+ * Copyright (C) 2008-2019 The QXmpp developers
  *
  * Authors:
  *  Manjeet Dahiya
@@ -96,6 +96,20 @@ public:
 
     // XEP-0280: Message Carbons
     bool privatemsg;
+
+    // XEP-0066: Out of Band Data
+    QString outOfBandUrl;
+
+    // XEP-0308: Last Message Correction
+    QString replaceId;
+
+    // XEP-0369: Mediated Information eXchange (MIX)
+    QString mixUserJid;
+    QString mixUserNick;
+
+    // XEP-0382: Spoiler messages
+    bool isSpoiler = false;
+    QString spoilerHint;
 };
 
 /// Constructs a QXmppMessage.
@@ -374,6 +388,7 @@ namespace
                << qMakePair(QString("thread"), QString())
                << qMakePair(QString("html"), QString())
                << qMakePair(QString("received"), QString(ns_message_receipts))
+               << qMakePair(QString("replace"), QString(ns_message_correct))
                << qMakePair(QString("request"), QString())
                << qMakePair(QString("delay"), QString())
                << qMakePair(QString("attention"), QString())
@@ -467,12 +482,117 @@ void QXmppMessage::setPrivate(const bool priv)
     d->privatemsg = priv;
 }
 
-/// Indicates if the QXmppStanza is a stanza in the XMPP sence (i. e. a message,
+/// Indicates if the QXmppStanza is a stanza in the XMPP sense (i. e. a message,
 /// iq or presence)
 
 bool QXmppMessage::isXmppStanza() const
 {
     return true;
+}
+
+/// Returns a possibly attached URL from XEP-0066: Out of Band Data
+
+QString QXmppMessage::outOfBandUrl() const
+{
+    return d->outOfBandUrl;
+}
+
+/// Sets the attached URL for XEP-0066: Out of Band Data
+
+void QXmppMessage::setOutOfBandUrl(const QString &url)
+{
+    d->outOfBandUrl = url;
+}
+
+/// Returns the message id to replace with this message as used in XEP-0308:
+/// Last Message Correction. If the returned string is empty, this message is
+/// not replacing another.
+
+QString QXmppMessage::replaceId() const
+{
+    return d->replaceId;
+}
+
+/// Sets the message id to replace with this message as in XEP-0308: Last
+/// Message Correction.
+
+void QXmppMessage::setReplaceId(const QString &replaceId)
+{
+    d->replaceId = replaceId;
+}
+
+/// Returns the actual JID of a MIX channel participant.
+
+QString QXmppMessage::mixUserJid() const
+{
+    return d->mixUserJid;
+}
+
+/// Sets the actual JID of a MIX channel participant.
+
+void QXmppMessage::setMixUserJid(const QString& mixUserJid)
+{
+    d->mixUserJid = mixUserJid;
+}
+
+/// Returns the MIX participant's nickname.
+
+QString QXmppMessage::mixUserNick() const
+{
+    return d->mixUserNick;
+}
+
+/// Sets the MIX participant's nickname.
+
+void QXmppMessage::setMixUserNick(const QString& mixUserNick)
+{
+    d->mixUserNick = mixUserNick;
+}
+
+/// Returns true, if this is a spoiler message according to XEP-0382: Spoiler
+/// messages. The spoiler hint however can still be empty.
+///
+/// A spoiler message's content should not be visible to the user by default.
+
+bool QXmppMessage::isSpoiler() const
+{
+    return d->isSpoiler;
+}
+
+/// Sets whether this is a spoiler message as specified in XEP-0382: Spoiler
+/// messages.
+///
+/// The content of spoiler messages will not be displayed by default to the
+/// user. However, clients not supporting spoiler messages will still display
+/// the content as usual.
+
+void QXmppMessage::setIsSpoiler(bool isSpoiler)
+{
+    d->isSpoiler = isSpoiler;
+}
+
+/// Returns the spoiler hint as specified in XEP-0382: Spoiler messages.
+///
+/// The hint may be empty, even if isSpoiler is true.
+
+QString QXmppMessage::spoilerHint() const
+{
+    return d->spoilerHint;
+}
+
+/// Sets a spoiler hint for XEP-0382: Spoiler messages. If the spoiler hint
+/// is not empty, isSpoiler will be set to true.
+///
+/// A spoiler hint is optional for spoiler messages.
+///
+/// Keep in mind that the spoiler hint is not displayed at all by clients not
+/// supporting spoiler messages.
+
+void QXmppMessage::setSpoilerHint(const QString &spoilerHint)
+{
+    d->spoilerHint = spoilerHint;
+    if (!spoilerHint.isEmpty())
+        d->isSpoiler = true;
 }
 
 /// \cond
@@ -580,6 +700,11 @@ void QXmppMessage::parse(const QDomElement &element)
     if (!privateElement.isNull())
         d->privatemsg = true;
 
+    // XEP-0308: Last Message Correction
+    QDomElement replaceElement = element.firstChildElement("replace");
+    if (!replaceElement.isNull() && replaceElement.namespaceURI() == ns_message_correct)
+        d->replaceId = replaceElement.attribute("id");
+
     const QList<QPair<QString, QString> > &knownElems = knownMessageSubelems();
 
     QXmppElementList extensions;
@@ -604,10 +729,21 @@ void QXmppMessage::parse(const QDomElement &element)
                 d->mucInvitationJid = xElement.attribute("jid");
                 d->mucInvitationPassword = xElement.attribute("password");
                 d->mucInvitationReason = xElement.attribute("reason");
+            } else if (xElement.namespaceURI() == ns_oob) {
+                // XEP-0066: Out of Band Data
+                d->outOfBandUrl = xElement.firstChildElement("url").text();
             }
             else {
                 extensions << QXmppElement(xElement);
             }
+        // XEP-0369: Mediated Information eXchange (MIX)
+        } else if (xElement.tagName() == "mix" && xElement.namespaceURI() == ns_mix) {
+            d->mixUserJid = xElement.firstChildElement("jid").text();
+            d->mixUserNick = xElement.firstChildElement("nick").text();
+        // XEP-0382: Spoiler messages
+        } else if (xElement.tagName() == "spoiler" && xElement.namespaceURI() == ns_spoiler) {
+            d->isSpoiler = true;
+            d->spoilerHint = xElement.text();
         } else if (!knownElems.contains(qMakePair(xElement.tagName(), xElement.namespaceURI())) &&
                    !knownElems.contains(qMakePair(xElement.tagName(), QString()))) {
             // other extensions
@@ -726,6 +862,39 @@ void QXmppMessage::toXml(QXmlStreamWriter *xmlWriter) const
     if (d->privatemsg) {
         xmlWriter->writeStartElement("private");
         xmlWriter->writeAttribute("xmlns", ns_carbons);
+        xmlWriter->writeEndElement();
+    }
+
+    // XEP-0066: Out of Band Data
+    if (!d->outOfBandUrl.isEmpty()) {
+        xmlWriter->writeStartElement("x");
+        xmlWriter->writeAttribute("xmlns", ns_oob);
+        xmlWriter->writeTextElement("url", d->outOfBandUrl);
+        xmlWriter->writeEndElement();
+    }
+
+    // XEP-0308: Last Message Correction
+    if (!d->replaceId.isEmpty()) {
+        xmlWriter->writeStartElement("replace");
+        xmlWriter->writeAttribute("xmlns", ns_message_correct);
+        xmlWriter->writeAttribute("id", d->replaceId);
+        xmlWriter->writeEndElement();
+    }
+
+    // XEP-0369: Mediated Information eXchange (MIX)
+    if (!d->mixUserJid.isEmpty() || !d->mixUserNick.isEmpty()) {
+        xmlWriter->writeStartElement("mix");
+        xmlWriter->writeAttribute("xmlns", ns_mix);
+        helperToXmlAddTextElement(xmlWriter, "jid", d->mixUserJid);
+        helperToXmlAddTextElement(xmlWriter, "nick", d->mixUserNick);
+        xmlWriter->writeEndElement();
+    }
+
+    // XEP-0382: Spoiler messages
+    if (d->isSpoiler) {
+        xmlWriter->writeStartElement("spoiler");
+        xmlWriter->writeAttribute("xmlns", ns_spoiler);
+        xmlWriter->writeCharacters(d->spoilerHint);
         xmlWriter->writeEndElement();
     }
 

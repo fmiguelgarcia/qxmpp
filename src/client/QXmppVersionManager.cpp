@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2014 The QXmpp developers
+ * Copyright (C) 2008-2019 The QXmpp developers
  *
  * Author:
  *  Manjeet Dahiya
@@ -23,6 +23,9 @@
 
 #include <QCoreApplication>
 #include <QDomElement>
+#if QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
+#include <QSysInfo>
+#endif
 
 #include "QXmppClient.h"
 #include "QXmppConstants_p.h"
@@ -45,10 +48,12 @@ QXmppVersionManager::QXmppVersionManager()
     if (d->clientName.isEmpty())
         d->clientName = "Based on QXmpp";
 
-#if defined(Q_OS_LINUX)
+#if QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
+    d->clientOs = QSysInfo::prettyProductName();
+#elif defined(Q_OS_LINUX)
     d->clientOs = QString::fromLatin1("Linux");
 #elif defined(Q_OS_MAC)
-    d->clientOs = QString::fromLatin1("Mac OS");
+    d->clientOs = QString::fromLatin1("macOS");
 #elif defined(Q_OS_SYMBIAN)
     d->clientOs = QString::fromLatin1("Symbian");
 #elif defined(Q_OS_WIN)
@@ -129,8 +134,8 @@ QString QXmppVersionManager::clientVersion() const
 
 /// Returns the local XMPP client's operating system.
 ///
-/// By default this is "Linux", "Mac OS", "Symbian" or "Windows" depending
-/// on the platform QXmpp was compiled for.
+/// By default this equals to QSysInfo::prettyProductName() which contains the
+/// OS name and version (e.g. "Windows 8.1" or "Debian GNU/Linux buster").
 
 QString QXmppVersionManager::clientOs() const
 {

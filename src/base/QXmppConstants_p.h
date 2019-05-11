@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2014 The QXmpp developers
+ * Copyright (C) 2008-2019 The QXmpp developers
  *
  * Author:
  *  Manjeet Dahiya
@@ -69,6 +69,8 @@ extern const char* ns_vcard;
 extern const char* ns_rsm;
 // XEP-0065: SOCKS5 Bytestreams
 extern const char* ns_bytestreams;
+// XEP-0066: Out of Band Data
+extern const char* ns_oob;
 // XEP-0071: XHTML-IM
 extern const char *ns_xhtml_im;
 // XEP-0077: In-Band Registration
@@ -132,9 +134,32 @@ extern const char* ns_conference;
 extern const char* ns_carbons;
 // XEP-0297: Stanza Forwarding
 extern const char* ns_forwarding;
+// XEP-0308: Last Message Correction
+extern const char* ns_message_correct;
 // XEP-0313: Message Archive Management
 extern const char* ns_mam;
+// XEP-0319: Last User Interaction in Presence
+extern const char* ns_idle;
 // XEP-0333: Char Markers
 extern const char* ns_chat_markers;
+// XEP-0352: Client State Indication
+extern const char* ns_csi;
+// XEP-0363: HTTP File Upload
+extern const char* ns_http_upload;
+// XEP-0369: Mediated Information eXchange (MIX)
+extern const char* ns_mix;
+extern const char* ns_mix_create_channel;
+extern const char* ns_mix_searchable;
+extern const char* ns_mix_node_messages;
+extern const char* ns_mix_node_participants;
+extern const char* ns_mix_node_presence;
+extern const char* ns_mix_node_config;
+extern const char* ns_mix_node_info;
+// XEP-0382: Spoiler messages
+extern const char* ns_spoiler;
+// XEP-0405: Mediated Information eXchange (MIX): Participant Server Requirements
+extern const char* ns_mix_pam;
+extern const char* ns_mix_roster;
+extern const char* ns_mix_presence;
 
 #endif // QXMPPCONSTANTS_H

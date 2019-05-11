@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2014 The QXmpp developers
+ * Copyright (C) 2008-2019 The QXmpp developers
  *
  * Authors:
  *  Manjeet Dahiya
@@ -55,6 +55,7 @@ public:
     void connectToHost();
     bool isAuthenticated() const;
     bool isConnected() const;
+    bool isClientStateIndicationEnabled() const;
 
     QSslSocket *socket() const { return QXmppStream::socket(); };
     QXmppStanza::Error::Condition xmppStreamError();

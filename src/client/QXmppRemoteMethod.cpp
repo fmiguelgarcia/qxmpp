@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2014 The QXmpp developers
+ * Copyright (C) 2008-2019 The QXmpp developers
  *
  * Authors:
  *  Ian Reinhart Geiser
@@ -44,7 +44,7 @@ QXmppRemoteMethodResult QXmppRemoteMethod::call( )
     // us to lose incoming packets
     QEventLoop loop(this);
     connect( this, SIGNAL(callDone()), &loop, SLOT(quit()));
-    QTimer::singleShot(30000,&loop, SLOT(quit())); // Timeout incase the other end hangs...
+    QTimer::singleShot(30000,&loop, SLOT(quit())); // Timeout in case the other end hangs...
 
     m_client->sendPacket( m_payload );
 

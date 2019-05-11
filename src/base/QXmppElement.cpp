@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2014 The QXmpp developers
+ * Copyright (C) 2008-2019 The QXmpp developers
  *
  * Author:
  *  Jeremy Lainé
@@ -123,10 +123,13 @@ QXmppElement::~QXmppElement()
 
 QXmppElement &QXmppElement::operator=(const QXmppElement &other)
 {
-    other.d->counter.ref();
-    if (!d->counter.deref())
-        delete d;
-    d = other.d;
+    if (this != &other) // self-assignment check
+    {
+        other.d->counter.ref();
+        if (!d->counter.deref())
+            delete d;
+        d = other.d;
+    }
     return *this;
 }
 

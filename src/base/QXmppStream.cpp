@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2014 The QXmpp developers
+ * Copyright (C) 2008-2019 The QXmpp developers
  *
  * Authors:
  *  Manjeet Dahiya
@@ -290,7 +290,7 @@ void QXmppStream::_q_socketReadyRead()
 
 /// Enables Stream Management acks / reqs (XEP-0198).
 ///
-/// \param resetSequenceNumber Indicates if the sequence numbers should be resetted.
+/// \param resetSequenceNumber Indicates if the sequence numbers should be reset.
 ///                            This must be done iff the stream is not resumed.
 void QXmppStream::enableStreamManagement(bool resetSequenceNumber)
 {

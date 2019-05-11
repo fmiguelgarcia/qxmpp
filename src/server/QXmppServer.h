@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2014 The QXmpp developers
+ * Copyright (C) 2008-2019 The QXmpp developers
  *
  * Author:
  *  Jeremy Lainé
@@ -143,11 +143,7 @@ signals:
     void newConnection(QSslSocket *socket);
 
 private:
-    #if QT_VERSION < 0x050000
-    void incomingConnection(int socketDescriptor);
-    #else
-    void incomingConnection(qintptr socketDescriptor);
-    #endif
+    void incomingConnection(qintptr socketDescriptor) override;
     QXmppSslServerPrivate * const d;
 };
 

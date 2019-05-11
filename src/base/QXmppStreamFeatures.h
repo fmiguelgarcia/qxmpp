@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2014 The QXmpp developers
+ * Copyright (C) 2008-2019 The QXmpp developers
  *
  * Author:
  *  Jeremy Lainé
@@ -65,6 +65,14 @@ public:
     /// \pa mode The mode to set.
     void setStreamManagementMode(Mode mode);
 
+    /// Returns the mode for XEP-0352: Client State Indication
+    Mode clientStateIndicationMode() const;
+
+    /// Sets the mode for XEP-0352: Client State Indication
+    ///
+    /// \pa mode The mode to set.
+    void setClientStateIndicationMode(Mode mode);
+
     /// \cond
     void parse(const QDomElement &element);
     void toXml(QXmlStreamWriter *writer) const;
@@ -78,6 +86,7 @@ private:
     Mode m_nonSaslAuthMode;
     Mode m_tlsMode;
     Mode m_streamManagementMode;
+    Mode m_csiMode;
     QStringList m_authMechanisms;
     QStringList m_compressionMethods;
 };
